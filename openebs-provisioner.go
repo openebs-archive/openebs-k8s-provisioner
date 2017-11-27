@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"syscall"
 
@@ -105,6 +106,10 @@ func (p *openEBSProvisioner) Provision(options controller.VolumeOptions) (*v1.Pe
 		return nil, err
 	}
 
+	// Use annotations to specify the context using which the PV was created.
+	volAnnotations := make(map[string]string)
+	volAnnotations["openEBSProvisionerIdentity"] = p.identity
+
 	var iqn, targetPortal string
 
 	for key, value := range volume.Metadata.Annotations.(map[string]interface{}) {
@@ -123,12 +128,24 @@ func (p *openEBSProvisioner) Provision(options controller.VolumeOptions) (*v1.Pe
 		return nil, fmt.Errorf("Invalid Access Modes: %v, Supported Access Modes: %v", options.PVC.Spec.AccessModes, p.GetAccessModes())
 	}
 
+	// The following will be used by the dashboard, to display links on PV page
+	userLinks := make([]string, 0)
+	localMonitoringURL := os.Getenv("OPENEBS_MONITOR_URL")
+	if localMonitoringURL != "" {
+		userLinks = append(userLinks, "\"monitor\":\""+localMonitoringURL+"\"")
+	}
+	mayaPortalURL := os.Getenv("MAYA_PORTAL_URL")
+	if mayaPortalURL != "" {
+		userLinks = append(userLinks, "\"maya\":\""+mayaPortalURL+"\"")
+	}
+	if len(userLinks) > 0 {
+		volAnnotations["alpha.dashboard.kubernetes.io/links"] = "{" + strings.Join(userLinks, ",") + "}"
+	}
+
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: options.PVName,
-			Annotations: map[string]string{
-				"openEBSProvisionerIdentity": p.identity,
-			},
+			Name:        options.PVName,
+			Annotations: volAnnotations,
 		},
 		Spec: v1.PersistentVolumeSpec{
 			PersistentVolumeReclaimPolicy: options.PersistentVolumeReclaimPolicy,
