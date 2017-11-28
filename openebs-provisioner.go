@@ -132,11 +132,23 @@ func (p *openEBSProvisioner) Provision(options controller.VolumeOptions) (*v1.Pe
 	userLinks := make([]string, 0)
 	localMonitoringURL := os.Getenv("OPENEBS_MONITOR_URL")
 	if localMonitoringURL != "" {
-		userLinks = append(userLinks, "\"monitor\":\""+localMonitoringURL+"\"")
+		localMonitorLinkName := os.Getenv("OPENEBS_MONITOR_LINK_NAME")
+		if localMonitorLinkName == "" {
+			localMonitorLinkName = "monitor"
+		}
+		localMonitorVolKey := os.Getenv("OPENEBS_MONITOR_VOLKEY")
+		if localMonitorVolKey != "" {
+			localMonitoringURL += localMonitorVolKey + "=" + options.PVName
+		}
+		userLinks = append(userLinks, "\""+localMonitorLinkName+"\":\""+localMonitoringURL+"\"")
 	}
 	mayaPortalURL := os.Getenv("MAYA_PORTAL_URL")
 	if mayaPortalURL != "" {
-		userLinks = append(userLinks, "\"maya\":\""+mayaPortalURL+"\"")
+		mayaPortalLinkName := os.Getenv("MAYA_PORTAL_LINK_NAME")
+		if mayaPortalLinkName == "" {
+			mayaPortalLinkName = "maya"
+		}
+		userLinks = append(userLinks, "\""+mayaPortalLinkName+"\":\""+mayaPortalURL+"\"")
 	}
 	if len(userLinks) > 0 {
 		volAnnotations["alpha.dashboard.kubernetes.io/links"] = "{" + strings.Join(userLinks, ",") + "}"
