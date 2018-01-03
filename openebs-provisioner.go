@@ -178,7 +178,7 @@ func (p *openEBSProvisioner) Provision(options controller.VolumeOptions) (*v1.Pe
 				ISCSI: &v1.ISCSIVolumeSource{
 					TargetPortal: targetPortal,
 					IQN:          iqn,
-					Lun:          1,
+					Lun:          0,
 					FSType:       "ext4",
 					ReadOnly:     false,
 				},
