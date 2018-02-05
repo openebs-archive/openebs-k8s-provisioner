@@ -35,6 +35,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+)
+
+var (
+	master     = flag.String("master", "", "Master's URL to communicate with kubernetes-master if running from outside the cluster or if apiserver is allowing insecure/Non SSL connections.")
+	kubeconfig = flag.String("kubeconfig", "", "Absolute path to kubeconfig if running from outside the cluster.")
 )
 
 const (
@@ -224,10 +230,18 @@ func main() {
 
 	flag.Parse()
 	flag.Set("logtostderr", "true")
-
-	// Create an InClusterConfig and use it to create a client for the controller
-	// to use to communicate with Kubernetes
-	config, err := rest.InClusterConfig()
+	var (
+		config *rest.Config
+		err    error
+	)
+	if *master != "" || *kubeconfig != "" {
+		config, err = clientcmd.BuildConfigFromFlags(*master, *kubeconfig)
+		fmt.Printf("Client config was built using flags: Address: '%s' Kubeconfig: '%s' \n", *master, *kubeconfig)
+	} else {
+		// Create an InClusterConfig and use it to create a client for the controller
+		// to use to communicate with Kubernetes
+		config, err := rest.InClusterConfig()
+	}
 	if err != nil {
 		glog.Errorf("Failed to create config: %v", err)
 	}
