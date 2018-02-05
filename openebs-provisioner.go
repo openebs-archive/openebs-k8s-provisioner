@@ -240,7 +240,7 @@ func main() {
 	} else {
 		// Create an InClusterConfig and use it to create a client for the controller
 		// to use to communicate with Kubernetes
-		config, err := rest.InClusterConfig()
+		config, err = rest.InClusterConfig()
 	}
 	if err != nil {
 		glog.Errorf("Failed to create config: %v", err)
