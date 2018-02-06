@@ -232,8 +232,8 @@ func main() {
 		kubeConfig = mayav1.KubeConfigENV()
 	)
 	if len(k8sMaster) != 0 || len(kubeConfig) != 0 {
+		fmt.Printf("Build client config using k8s Master's Address: '%s' or Kubeconfig: '%s' \n", k8sMaster, kubeConfig)
 		config, err = clientcmd.BuildConfigFromFlags(k8sMaster, kubeConfig)
-		fmt.Printf("Client config was built using flags: Address: '%s' Kubeconfig: '%s' \n", k8sMaster, kubeConfig)
 	} else {
 		// Create an InClusterConfig and use it to create a client for the controller
 		// to use to communicate with Kubernetes
