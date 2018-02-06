@@ -38,11 +38,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var (
-	master     = flag.String("master", "", "Master's URL to communicate with kubernetes-master if running from outside the cluster or if apiserver is allowing insecure/Non SSL connections.")
-	kubeconfig = flag.String("kubeconfig", "", "Absolute path to kubeconfig if running from outside the cluster.")
-)
-
 const (
 	provisionerName = "openebs.io/provisioner-iscsi"
 	// BetaStorageClassAnnotation represents the beta/previous StorageClass annotation.
@@ -231,12 +226,14 @@ func main() {
 	flag.Parse()
 	flag.Set("logtostderr", "true")
 	var (
-		config *rest.Config
-		err    error
+		config     *rest.Config
+		err        error
+		k8sMaster  = mayav1.K8sMasterENV()
+		kubeConfig = mayav1.KubeConfigENV()
 	)
-	if *master != "" || *kubeconfig != "" {
-		config, err = clientcmd.BuildConfigFromFlags(*master, *kubeconfig)
-		fmt.Printf("Client config was built using flags: Address: '%s' Kubeconfig: '%s' \n", *master, *kubeconfig)
+	if len(k8sMaster) != 0 || len(kubeConfig) != 0 {
+		config, err = clientcmd.BuildConfigFromFlags(k8sMaster, kubeConfig)
+		fmt.Printf("Client config was built using flags: Address: '%s' Kubeconfig: '%s' \n", k8sMaster, kubeConfig)
 	} else {
 		// Create an InClusterConfig and use it to create a client for the controller
 		// to use to communicate with Kubernetes
