@@ -61,10 +61,16 @@ func (v OpenEBSVolume) GetMayaClusterIP(client kubernetes.Interface) (string, er
 	}
 
 	glog.Info("OpenEBS volume provisioner namespace ", namespace)
+
 	//Fetch the Maya ClusterIP using the Maya API Server Service
-	sc, err := client.CoreV1().Services(namespace).Get("maya-apiserver-service", metav1.GetOptions{})
+	mayaAPIServiceName := os.Getenv("OPENEBS_MAYA_SERVICE_NAME")
+	if mayaAPIServiceName == "" {
+		mayaAPIServiceName = "maya-apiserver-service"
+	}
+
+	sc, err := client.CoreV1().Services(namespace).Get(mayaAPIServiceName, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("Error getting maya-apiserver IP Address: %v", err)
+		glog.Errorf("Error getting IP Address for service - %s : %v", mayaAPIServiceName, err)
 	}
 
 	clusterIP = sc.Spec.ClusterIP
