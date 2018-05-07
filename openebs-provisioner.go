@@ -43,7 +43,13 @@ const (
 	// BetaStorageClassAnnotation represents the beta/previous StorageClass annotation.
 	// It's currently still used and will be held for backwards compatibility
 	BetaStorageClassAnnotation = "volume.beta.kubernetes.io/storage-class"
+	//defaultFSType
+	defaultFSType = "ext4"
 )
+
+// validFSType represents the valid fstype supported by openebs volume
+// New supported type can be added using OPENEBS_VALID_FSTYPE env
+var validFSType = []string{"ext4", "xfs"}
 
 type openEBSProvisioner struct {
 	// Maya-API Server URI running in the cluster
@@ -164,6 +170,10 @@ func (p *openEBSProvisioner) Provision(options controller.VolumeOptions) (*v1.Pe
 		volAnnotations["alpha.dashboard.kubernetes.io/links"] = "{" + strings.Join(userLinks, ",") + "}"
 	}
 
+	fsType, err := parseClassParameters(options.Parameters)
+	if err != nil {
+		return nil, err
+	}
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        options.PVName,
@@ -180,7 +190,7 @@ func (p *openEBSProvisioner) Provision(options controller.VolumeOptions) (*v1.Pe
 					TargetPortal: targetPortal,
 					IQN:          iqn,
 					Lun:          0,
-					FSType:       "ext4",
+					FSType:       fsType,
 					ReadOnly:     false,
 				},
 			},
@@ -280,4 +290,42 @@ func GetStorageClassName(options controller.VolumeOptions) *string {
 		return &class
 	}
 	return options.PVC.Spec.StorageClassName
+}
+
+// parseClassParameters extract the new fstype other then "ext4"(dafault) which
+// can be changed via "openebs.io/fstype" key and env OPENEBS_VALID_FSTYPE
+func parseClassParameters(params map[string]string) (string, error) {
+	var fsType string
+	for k, v := range params {
+		switch strings.ToLower(k) {
+		case "openebs.io/fstype":
+			fsType = v
+		}
+	}
+	if len(fsType) == 0 {
+		fsType = defaultFSType
+	}
+
+	//Get openebs supported fstype from ENV variable
+	validENVFSType := os.Getenv("OPENEBS_VALID_FSTYPE")
+	if validENVFSType != "" {
+		slices := strings.Split(validENVFSType, ",")
+		for _, s := range slices {
+			validFSType = append(validFSType, s)
+		}
+	}
+	if !isValid(fsType, validFSType) {
+		return "", fmt.Errorf("Filesystem %s is not supported", fsType)
+	}
+	return fsType, nil
+}
+
+// isValid checks the validity of fstype returns true if supported
+func isValid(value string, list []string) bool {
+	for _, v := range list {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
