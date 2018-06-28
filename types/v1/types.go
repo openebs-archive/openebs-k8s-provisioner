@@ -16,7 +16,13 @@ limitations under the License.
 
 package v1
 
-//VolumeSpec holds the config for creating a VSM
+const (
+	PVCLabelsApplication = "volumeprovisioner.mapi.openebs.io/application"
+	PVCLabelsREplicaTopKeyDomain = "volumeprovisioner.mapi.openebs.io/replica-topology-key-domain"
+	PVCLabelsREplicaTopKeyType = "volumeprovisioner.mapi.openebs.io/replica-topology-key-type"
+)
+
+//VolumeSpec holds the config for creating a OpenEBS Volume
 type VolumeSpec struct {
 	Kind       string `yaml:"kind"`
 	APIVersion string `yaml:"apiVersion"`
@@ -27,6 +33,9 @@ type VolumeSpec struct {
 			StorageClass          string `yaml:"k8s.io/storage-class"`
 			Namespace             string `yaml:"k8s.io/namespace"`
 			PersistentVolumeClaim string `yaml:"k8s.io/pvc"`
+			Application           string `yaml:"volumeprovisioner.mapi.openebs.io/application,omitempty"`
+			ReplicaTopoKeyDomain  string `yaml:"volumeprovisioner.mapi.openebs.io/replica-topology-key-domain,omitempty"`
+			ReplicaTopoKeyType    string `yaml:"volumeprovisioner.mapi.openebs.io/replica-topology-key-type,omitempty"`
 		} `yaml:"labels"`
 	} `yaml:"metadata"`
 	CloneIP      string `yaml:"cloneIP"`
