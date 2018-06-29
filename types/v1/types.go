@@ -18,8 +18,8 @@ package v1
 
 const (
 	PVCLabelsApplication = "volumeprovisioner.mapi.openebs.io/application"
-	PVCLabelsREplicaTopKeyDomain = "volumeprovisioner.mapi.openebs.io/replica-topology-key-domain"
-	PVCLabelsREplicaTopKeyType = "volumeprovisioner.mapi.openebs.io/replica-topology-key-type"
+	PVCLabelsReplicaTopKeyDomain = "volumeprovisioner.mapi.openebs.io/replica-topology-key-domain"
+	PVCLabelsReplicaTopKeyType = "volumeprovisioner.mapi.openebs.io/replica-topology-key-type"
 )
 
 //VolumeSpec holds the config for creating a OpenEBS Volume
