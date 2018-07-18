@@ -34,8 +34,9 @@ sudo apt-get install open-iscsi
 sudo service iscsid start
 sudo service iscsid status
 
-# Creates a snapshot
 kubectl get pods --all-namespaces
+kubectl get sc
+# Create the application
 echo "Creating busybox application pod"
 kubectl create -f $DST_REPO/external-storage/openebs/ci/snapshot/busybox.yaml
 
