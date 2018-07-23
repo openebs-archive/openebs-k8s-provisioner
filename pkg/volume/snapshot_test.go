@@ -1,4 +1,20 @@
-package v1
+/*
+Copyright 2017 The OpenEBS Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package volume
 
 import (
 	"errors"
@@ -110,7 +126,7 @@ func TestCreateSnapshot(t *testing.T) {
 			defer os.Unsetenv(tt.addr)
 			defer server.Close()
 			var vol OpenEBSVolume
-			resp, err := vol.CreateSnapshot(tt.volumeName, tt.snapName)
+			resp, err := vol.CreateSnapshot(tt.volumeName, tt.snapName, "default")
 			if !reflect.DeepEqual(err, tt.err) {
 				t.Fatalf("CreateSnapshot(%v, %v) => got %v, want %v ", tt.volumeName, tt.snapName, err, tt.err)
 			}
@@ -266,7 +282,7 @@ func TestListSnapshot(t *testing.T) {
 			defer server.Close()
 			var obj interface{}
 			var vol OpenEBSVolume
-			err := vol.ListSnapshot(tt.volumeName, "", obj)
+			err := vol.ListSnapshot(tt.volumeName, "", "default", obj)
 			if !reflect.DeepEqual(err, tt.err) {
 				t.Fatalf("ListSnapshot(%v) => got %v, want %v ", tt.volumeName, err, tt.err)
 			}
