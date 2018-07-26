@@ -90,17 +90,18 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 		mapLabels[string(v1alpha1.StorageClassKey)] = *className
 		casVolume.Labels = mapLabels
 	}
+	PVName := options.PVC.Namespace + "-" + options.PVC.Name
 	casVolume.Labels[string(v1alpha1.NamespaceKey)] = options.PVC.Namespace
 	casVolume.Namespace = options.PVC.Namespace
 	casVolume.Labels[string(v1alpha1.PersistentVolumeClaimKey)] = options.PVC.ObjectMeta.Name
-	casVolume.Name = options.PVName
+	casVolume.Name = PVName
 
 	err := openebsCASVol.CreateVolume(casVolume)
 	if err != nil {
 		glog.Errorf("Failed to create volume:  %+v, error: %s", options, err.Error())
 		return nil, err
 	}
-	err = openebsCASVol.ReadVolume(options.PVName, options.PVC.Namespace, *className, &casVolume)
+	err = openebsCASVol.ReadVolume(PVName, options.PVC.Namespace, *className, &casVolume)
 	if err != nil {
 		glog.Errorf("Failed to read volume: %v", err)
 		return nil, err
@@ -124,7 +125,7 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        options.PVName,
+			Name:        PVName,
 			Annotations: volAnnotations,
 		},
 		Spec: v1.PersistentVolumeSpec{
