@@ -133,7 +133,7 @@ func (v CASVolume) CreateVolume(vol v1alpha1.CASVolume) error {
 }
 
 // ReadVolume to get the info of CAS volume through a API call to m-apiserver
-func (v CASVolume) ReadVolume(vname string, namespace string, obj interface{}) error {
+func (v CASVolume) ReadVolume(vname, namespace, storageclass string, obj interface{}) error {
 
 	addr := os.Getenv("MAPI_ADDR")
 	if addr == "" {
@@ -150,6 +150,9 @@ func (v CASVolume) ReadVolume(vname string, namespace string, obj interface{}) e
 	}
 
 	req.Header.Set("namespace", namespace)
+	// passing storageclass info as a request header which will extracted by the
+	// Maya-apiserver to get the CAS template name
+	req.Header.Set(string(v1alpha1.StorageClassKey), storageclass)
 
 	c := &http.Client{
 		Timeout: timeout,

@@ -97,11 +97,10 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 
 	err := openebsCASVol.CreateVolume(casVolume)
 	if err != nil {
-		glog.Errorf("Failed to create volume:  %s, error: %s", options, err.Error())
+		glog.Errorf("Failed to create volume:  %+v, error: %s", options, err.Error())
 		return nil, err
 	}
-
-	err = openebsCASVol.ReadVolume(options.PVName, options.PVC.Namespace, &casVolume)
+	err = openebsCASVol.ReadVolume(options.PVName, options.PVC.Namespace, *className, &casVolume)
 	if err != nil {
 		glog.Errorf("Failed to read volume: %v", err)
 		return nil, err
@@ -122,6 +121,7 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 	if err != nil {
 		return nil, err
 	}
+
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        options.PVName,
