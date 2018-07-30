@@ -55,10 +55,10 @@ const (
 	NamespaceKey CASKey = "openebs.io/namespace"
 
 	// PersistentVolumeClaimKey is the key to fetch name of PersistentVolumeClaim
-	PersistentVolumeClaimKey CASKey = "openebs.io/pvc"
+	PersistentVolumeClaimKey CASKey = "openebs.io/persistentvolumeclaim"
 
 	// StorageClassKey is the key to fetch name of StorageClass
-	StorageClassKey CASKey = "openebs.io/storage-class"
+	StorageClassKey CASKey = "openebs.io/storageclass"
 )
 
 // CASVolumeKey is a typed string to represent CAS Volume related annotations'
