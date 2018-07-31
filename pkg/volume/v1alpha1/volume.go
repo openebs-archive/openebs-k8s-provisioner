@@ -152,7 +152,7 @@ func (v CASVolume) ReadVolume(vname, namespace, storageclass string, obj interfa
 	req.Header.Set("namespace", namespace)
 	// passing storageclass info as a request header which will extracted by the
 	// Maya-apiserver to get the CAS template name
-	req.Header.Set(string(v1alpha1.StorageClassKey), storageclass)
+	req.Header.Set(string(v1alpha1.StorageClassHeaderKey), storageclass)
 
 	c := &http.Client{
 		Timeout: timeout,

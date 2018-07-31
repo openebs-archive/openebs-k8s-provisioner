@@ -59,6 +59,10 @@ const (
 
 	// StorageClassKey is the key to fetch name of StorageClass
 	StorageClassKey CASKey = "openebs.io/storageclass"
+
+	// StorageClassHeaderKey is the key to fetch name of StorageClass
+	// This key is present only in get request headers
+	StorageClassHeaderKey CASKey = "storageclass"
 )
 
 // CASVolumeKey is a typed string to represent CAS Volume related annotations'
