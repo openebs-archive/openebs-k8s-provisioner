@@ -63,13 +63,13 @@ done
 
 echo "********************Creating volume snapshot*****************************"
 kubectl create -f  $DST_REPO/external-storage/openebs/ci/snapshot/snapshot.yaml
-kubectl logs --tail=20 deployment/openebs-snapshot-operator -c snapshot-controller
+kubectl logs --tail=20 -n openebs deployment/openebs-snapshot-operator -c snapshot-controller
 
 # Promote/restore snapshot as persistent volume
 sleep 60
 echo "*****************Promoting snapshot as new PVC***************************"
 kubectl create -f  $DST_REPO/external-storage/openebs/ci/snapshot/snapshot_claim.yaml
-kubectl logs --tail=20 deployment/openebs-snapshot-operator -c snapshot-provisioner
+kubectl logs --tail=20 -n openebs deployment/openebs-snapshot-operator -c snapshot-provisioner
 
 sleep 30
 echo "***************Creating busybox-clone application pod********************"
