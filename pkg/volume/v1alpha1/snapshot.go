@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package volume
+package v1alpha1
 
 import (
 	"bytes"
@@ -26,13 +26,14 @@ import (
 	"os"
 
 	"github.com/golang/glog"
+
 	mayav1 "github.com/kubernetes-incubator/external-storage/openebs/types/v1"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
 // CreateSnapshot to create the Vsm through a API call to m-apiserver
-func (v OpenEBSVolume) CreateSnapshot(volName string, snapName string, namespace string) (string, error) {
+func (v CASVolume) CreateSnapshot(volName string, snapName string, namespace string) (string, error) {
 	addr := os.Getenv("MAPI_ADDR")
 	if addr == "" {
 		err := errors.New("MAPI_ADDR environment variable not set")
@@ -88,7 +89,7 @@ func (v OpenEBSVolume) CreateSnapshot(volName string, snapName string, namespace
 }
 
 // ListVolume to get the info of Vsm through a API call to m-apiserver
-func (v OpenEBSVolume) ListSnapshot(volName string, snapname string, namespace string, obj interface{}) error {
+func (v CASVolume) ListSnapshot(volName string, snapname string, namespace string, obj interface{}) error {
 
 	addr := os.Getenv("MAPI_ADDR")
 	if addr == "" {
@@ -133,7 +134,7 @@ func (v OpenEBSVolume) ListSnapshot(volName string, snapname string, namespace s
 }
 
 // RevertSnapshot revert a snapshot of volume by invoking the API call to m-apiserver
-func (v OpenEBSVolume) RevertSnapshot(volName string, snapName string) (string, error) {
+func (v CASVolume) RevertSnapshot(volName string, snapName string) (string, error) {
 	addr := os.Getenv("MAPI_ADDR")
 	if addr == "" {
 		err := errors.New("MAPI_ADDR environment variable not set")
@@ -182,12 +183,12 @@ func (v OpenEBSVolume) RevertSnapshot(volName string, snapName string) (string, 
 
 }
 
-func (v OpenEBSVolume) SnapshotInfo(volName string, snapName string) (string, error) {
+func (v CASVolume) SnapshotInfo(volName string, snapName string) (string, error) {
 
 	return "Not implemented", nil
 }
 
-func (v OpenEBSVolume) DeleteSnapshot(snapName string) (string, error) {
+func (v CASVolume) DeleteSnapshot(snapName string) (string, error) {
 
 	return "Not implemented", nil
 }

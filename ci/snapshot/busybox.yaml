@@ -20,15 +20,3 @@ spec:
     persistentVolumeClaim:
       claimName: demo-vol1-claim
 ---
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: demo-vol1-claim
-  namespace: default
-spec:
-  storageClassName: openebs-standard
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5G

@@ -102,7 +102,7 @@ func (v CASVolume) CreateVolume(vol v1alpha1.CASVolume) error {
 	//Marshal serializes the value provided into a json document
 	jsonValue, _ := json.Marshal(vol)
 
-	glog.V(2).Infof("CAS Volume Spec Created:\n%v\n", string(jsonValue))
+	glog.Infof("CAS Volume Spec Created:\n%v\n", string(jsonValue))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
 

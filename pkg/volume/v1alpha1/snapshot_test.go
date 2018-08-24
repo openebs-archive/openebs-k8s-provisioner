@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package volume
+package v1alpha1
 
 import (
 	"errors"
@@ -125,7 +125,7 @@ func TestCreateSnapshot(t *testing.T) {
 			os.Setenv(tt.addr, server.URL)
 			defer os.Unsetenv(tt.addr)
 			defer server.Close()
-			var vol OpenEBSVolume
+			var vol CASVolume
 			resp, err := vol.CreateSnapshot(tt.volumeName, tt.snapName, "default")
 			if !reflect.DeepEqual(err, tt.err) {
 				t.Fatalf("CreateSnapshot(%v, %v) => got %v, want %v ", tt.volumeName, tt.snapName, err, tt.err)
@@ -207,7 +207,7 @@ func TestRevertSnapshot(t *testing.T) {
 			os.Setenv(tt.addr, server.URL)
 			defer os.Unsetenv(tt.addr)
 			defer server.Close()
-			var vol OpenEBSVolume
+			var vol CASVolume
 			_, err := vol.RevertSnapshot(tt.volumeName, tt.snapName)
 			if !reflect.DeepEqual(err, tt.err) {
 				t.Fatalf("RevertSnapshot(%v, %v) => got %v, want %v ", tt.volumeName, tt.snapName, err, tt.err)
@@ -281,7 +281,7 @@ func TestListSnapshot(t *testing.T) {
 			defer os.Unsetenv(tt.addr)
 			defer server.Close()
 			var obj interface{}
-			var vol OpenEBSVolume
+			var vol CASVolume
 			err := vol.ListSnapshot(tt.volumeName, "", "default", obj)
 			if !reflect.DeepEqual(err, tt.err) {
 				t.Fatalf("ListSnapshot(%v) => got %v, want %v ", tt.volumeName, err, tt.err)
