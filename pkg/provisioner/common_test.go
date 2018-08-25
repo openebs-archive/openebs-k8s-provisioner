@@ -53,7 +53,7 @@ func TestParseClassParameters(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			fstype, err := parseClassParameters(tc.cfgs)
+			fstype, err := ParseClassParameters(tc.cfgs)
 			if !reflect.DeepEqual(err, tc.expectErr) {
 				t.Errorf("Expected %v, got %v", tc.expectErr, err)
 			}
@@ -108,7 +108,7 @@ func TestParseClassENVParameters(t *testing.T) {
 			os.Setenv("OPENEBS_VALID_FSTYPE", "nfs,btrfs,zfs")
 			defer os.Unsetenv("OPENEBS_VALID_FSTYPE")
 
-			fstype, err := parseClassParameters(tc.cfgs)
+			fstype, err := ParseClassParameters(tc.cfgs)
 			if !reflect.DeepEqual(err, tc.expectErr) {
 				t.Errorf("Expected %v, got %v", tc.expectErr, err)
 			}
@@ -117,4 +117,30 @@ func TestParseClassENVParameters(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestpvcHash(t *testing.T) {
+	cases := map[string]struct {
+		str1      string
+		expectInt uint32
+	}{
+		"case1": {
+			str1:      "f30eda0f-a83d-11e8-9334-54e1ad0c1ccc",
+			expectInt: 744927970,
+		},
+		"case2": {
+			str1:      "",
+			expectInt: 2166136261,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			respInt := pvcHash(tc.str1)
+			if !reflect.DeepEqual(respInt, tc.expectInt) {
+				t.Errorf("Expected %v, got %v", tc.expectInt, respInt)
+			}
+		})
+	}
+
 }

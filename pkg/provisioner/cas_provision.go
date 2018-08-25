@@ -29,7 +29,6 @@ import (
 	mv1alpha1 "github.com/kubernetes-incubator/external-storage/openebs/pkg/volume/v1alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	util_rand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -91,7 +90,9 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 		mapLabels[string(v1alpha1.StorageClassKey)] = *className
 		casVolume.Labels = mapLabels
 	}
-	PVName := options.PVC.Namespace + "-" + options.PVC.Name + "-" + util_rand.String(7)
+	// Generate the hash string from pvc UUID and append to make unique PV name
+	pvchash := fmt.Sprint(pvcHash(string(options.PVC.UID)))
+	PVName := options.PVC.Namespace + "-" + options.PVC.Name + "-" + pvchash
 
 	casVolume.Labels[string(v1alpha1.NamespaceKey)] = options.PVC.Namespace
 	casVolume.Namespace = options.PVC.Namespace

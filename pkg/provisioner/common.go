@@ -2,6 +2,7 @@ package provisioner
 
 import (
 	"fmt"
+	"hash/fnv"
 	"os"
 	"strings"
 
@@ -65,4 +66,11 @@ func isValid(value string, list []string) bool {
 		}
 	}
 	return false
+}
+
+// pvcHash generates a hash intenger from a string
+func pvcHash(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
 }
