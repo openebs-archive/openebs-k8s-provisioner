@@ -74,20 +74,9 @@ func main() {
 
 	// Create the provisioner: it implements the Provisioner interface expected by
 	// the controller
-	var openEBSProvisioner controller.Provisioner
-	feature, err := CASTemplateFeatureGate()
+	openEBSProvisioner, err := provisioner.NewOpenEBSCASProvisioner(clientset)
 	if err != nil {
-		glog.Fatalf("failed to fetch CAS template feature gate: %v", err)
-	}
-	if feature {
-		glog.Infof("Using CAS template feature gate for volume provisioning")
-
-		openEBSProvisioner, err = provisioner.NewOpenEBSCASProvisioner(clientset)
-		if err != nil {
-			glog.Fatalf("Error creating Openebs provisioner: %v", err)
-		}
-	} else {
-		openEBSProvisioner = provisioner.NewOpenEBSProvisioner(clientset)
+		glog.Fatalf("Error creating Openebs provisioner: %v", err)
 	}
 
 	// Start the provision controller which will dynamically provision OpenEBS PVs
