@@ -129,7 +129,7 @@ func (v CASVolume) CreateVolume(vol v1alpha1.CASVolume) error {
 		return fmt.Errorf("%s: failed to create volume '%s': response: %+v", http.StatusText(code), vol.Name, string(data))
 	}
 
-	glog.Infof("volume Successfully Created:\n%#v", string(data))
+	glog.Infof("volume Successfully Created:\n%+v", string(data))
 	return nil
 }
 
