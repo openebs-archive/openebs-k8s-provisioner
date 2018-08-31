@@ -139,11 +139,6 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 	volAnnotations["openEBSProvisionerIdentity"] = p.identity
 	volAnnotations["openebs.io/cas-type"] = casVolume.Spec.CasType
 
-	fsType, err := ParseClassParameters(options.Parameters)
-	if err != nil {
-		return nil, err
-	}
-
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        PVName,
@@ -160,8 +155,8 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 				ISCSI: &v1.ISCSIPersistentVolumeSource{
 					TargetPortal: casVolume.Spec.TargetPortal,
 					IQN:          casVolume.Spec.Iqn,
-					Lun:          0,
-					FSType:       fsType,
+					Lun:          casVolume.Spec.Lun,
+					FSType:       casVolume.Spec.FSType,
 					ReadOnly:     false,
 				},
 			},
