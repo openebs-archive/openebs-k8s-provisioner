@@ -33,9 +33,6 @@ import (
 
 const (
 	provisionerName = "openebs.io/provisioner-iscsi"
-	// CASTemplateFeatureGateENVK is the ENV key to fetch cas template feature gate
-	// i.e. if cas template based provisioning is enabled or disabled
-	CASTemplateFeatureGateENVK = "OPENEBS_IO_CAS_TEMPLATE_FEATURE_GATE"
 )
 
 func main() {

@@ -21,12 +21,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/external-storage/lib/controller"
 	"github.com/kubernetes-incubator/external-storage/lib/util"
 	"github.com/kubernetes-incubator/external-storage/openebs/pkg/apis/openebs.io/v1alpha1"
-	mvol "github.com/kubernetes-incubator/external-storage/openebs/pkg/volume"
 	mv1alpha1 "github.com/kubernetes-incubator/external-storage/openebs/pkg/volume/v1alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,7 +48,7 @@ func NewOpenEBSCASProvisioner(client kubernetes.Interface) (controller.Provision
 	if nodeName == "" {
 		return nil, fmt.Errorf("Env variable 'NODE_NAME' is not set")
 	}
-	var openebsObj mvol.OpenEBSVolume
+	var openebsObj mv1alpha1.CASVolume
 	//Get maya-apiserver IP address from cluster
 	addr, err := openebsObj.GetMayaClusterIP(client)
 
@@ -199,4 +199,34 @@ func (p *openEBSCASProvisioner) Delete(volume *v1.PersistentVolume) error {
 	}
 
 	return nil
+}
+
+// The following will be used by the dashboard, to display links on PV page
+func Setlink(volAnnotations map[string]string, pvName string) map[string]string {
+	userLinks := make([]string, 0)
+	localMonitoringURL := os.Getenv("OPENEBS_MONITOR_URL")
+	if localMonitoringURL != "" {
+		localMonitorLinkName := os.Getenv("OPENEBS_MONITOR_LINK_NAME")
+		if localMonitorLinkName == "" {
+			localMonitorLinkName = "monitor"
+		}
+		localMonitorVolKey := os.Getenv("OPENEBS_MONITOR_VOLKEY")
+		if localMonitorVolKey != "" {
+			localMonitoringURL += localMonitorVolKey + "=" + pvName
+		}
+		userLinks = append(userLinks, "\""+localMonitorLinkName+"\":\""+localMonitoringURL+"\"")
+	}
+	mayaPortalURL := os.Getenv("MAYA_PORTAL_URL")
+	if mayaPortalURL != "" {
+		mayaPortalLinkName := os.Getenv("MAYA_PORTAL_LINK_NAME")
+		if mayaPortalLinkName == "" {
+			mayaPortalLinkName = "maya"
+		}
+		userLinks = append(userLinks, "\""+mayaPortalLinkName+"\":\""+mayaPortalURL+"\"")
+	}
+	if len(userLinks) > 0 {
+		volAnnotations["alpha.dashboard.kubernetes.io/links"] = "{" + strings.Join(userLinks, ",") + "}"
+	}
+
+	return volAnnotations
 }
