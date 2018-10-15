@@ -27,38 +27,35 @@ import (
 
 	"github.com/golang/glog"
 
-	mayav1 "github.com/kubernetes-incubator/external-storage/openebs/types/v1"
-
-	yaml "gopkg.in/yaml.v2"
+	v1alpha1 "github.com/kubernetes-incubator/external-storage/openebs/pkg/apis/openebs.io/v1alpha1"
 )
 
 // CreateSnapshot to create the Vsm through a API call to m-apiserver
-func (v CASVolume) CreateSnapshot(volName string, snapName string, namespace string) (string, error) {
+func (v CASVolume) CreateSnapshot(castype, volName, snapName, namespace string) (string, error) {
 	addr := os.Getenv("MAPI_ADDR")
 	if addr == "" {
 		err := errors.New("MAPI_ADDR environment variable not set")
 		return "Error getting maya-apiserver IP Address", err
 	}
 
-	var snap mayav1.SnapshotAPISpec
+	var snap v1alpha1.CASSnapshot
 
-	snap.Kind = "VolumeSnapshot"
-	snap.APIVersion = "v1"
-	snap.Metadata.Name = snapName
+	snap.Namespace = namespace
+	snap.Name = snapName
+	snap.Spec.CasType = castype
 	snap.Spec.VolumeName = volName
 
-	url := addr + "/latest/snapshots/create/"
+	url := addr + "/latest/snapshots/"
 
 	//Marshal serializes the value provided into a YAML document
-	yamlValue, _ := yaml.Marshal(snap)
+	snapBytes, _ := json.Marshal(snap)
 
-	glog.V(2).Infof("snapshot Spec Created:\n%v\n", string(yamlValue))
+	glog.Infof("snapshot Spec Created:\n%v\n", string(snapBytes))
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(yamlValue))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(snapBytes))
 
-	req.Header.Add("Content-Type", "application/yaml")
+	req.Header.Add("Content-Type", "application/json")
 
-	req.Header.Set("namespace", namespace)
 	c := &http.Client{
 		Timeout: timeout,
 	}
@@ -96,7 +93,7 @@ func (v CASVolume) ListSnapshot(volName string, snapname string, namespace strin
 		err := errors.New("MAPI_ADDR environment variable not set")
 		return err
 	}
-	url := addr + "/latest/snapshots/list/"
+	url := addr + "/latest/snapshots/"
 
 	glog.V(2).Infof("[DEBUG] Get details for Volume :%v", string(volName))
 
@@ -133,25 +130,81 @@ func (v CASVolume) ListSnapshot(volName string, snapname string, namespace strin
 	return json.NewDecoder(resp.Body).Decode(obj)
 }
 
-// RevertSnapshot revert a snapshot of volume by invoking the API call to m-apiserver
-func (v CASVolume) RevertSnapshot(volName string, snapName string) (string, error) {
+// // RevertSnapshot revert a snapshot of volume by invoking the API call to m-apiserver
+// func (v CASVolume) RevertSnapshot(volName string, snapName string) (string, error) {
+// 	addr := os.Getenv("MAPI_ADDR")
+// 	if addr == "" {
+// 		err := errors.New("MAPI_ADDR environment variable not set")
+// 		return "Error getting maya-apiserver IP Address", err
+// 	}
+
+// 	var snap mayav1.SnapshotAPISpec
+// 	snap.Metadata.Name = snapName
+// 	snap.Spec.VolumeName = volName
+
+// 	url := addr + "/latest/snapshots/revert/"
+
+// 	yamlValue, _ := yaml.Marshal(snap)
+
+// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(yamlValue))
+
+// 	req.Header.Add("Content-Type", "application/yaml")
+
+// 	c := &http.Client{
+// 		Timeout: timeout,
+// 	}
+// 	resp, err := c.Do(req)
+// 	if err != nil {
+// 		glog.Errorf("Error when connecting maya-apiserver %v", err)
+// 		return "Could not connect to maya-apiserver", err
+// 	}
+// 	defer resp.Body.Close()
+
+// 	data, err := ioutil.ReadAll(resp.Body)
+// 	if err != nil {
+// 		glog.Errorf("Unable to read response from maya-apiserver %v", err)
+// 		return "Unable to read response from maya-apiserver", err
+// 	}
+
+// 	code := resp.StatusCode
+// 	if err == nil && code != http.StatusOK {
+// 		return "HTTP Status error from maya-apiserver", fmt.Errorf(string(data))
+// 	}
+// 	if code != http.StatusOK {
+// 		glog.Errorf("Status error: %v\n", http.StatusText(code))
+// 		return "HTTP Status error from maya-apiserver", err
+// 	}
+
+// 	glog.Infof("Snapshot Successfully restore:\n%v\n", string(data))
+// 	return "Snapshot Successfully restore", nil
+
+// }
+
+func (v CASVolume) SnapshotInfo(volName string, snapName string) (string, error) {
+
+	return "Not implemented", nil
+}
+
+func (v CASVolume) DeleteSnapshot(castype, volName, snapName, namespace string) (string, error) {
 	addr := os.Getenv("MAPI_ADDR")
 	if addr == "" {
 		err := errors.New("MAPI_ADDR environment variable not set")
 		return "Error getting maya-apiserver IP Address", err
 	}
 
-	var snap mayav1.SnapshotAPISpec
-	snap.Metadata.Name = snapName
-	snap.Spec.VolumeName = volName
+	url := addr + "/latest/snapshots/" + snapName
 
-	url := addr + "/latest/snapshots/revert/"
+	req, err := http.NewRequest("DELETE", url, nil)
 
-	yamlValue, _ := yaml.Marshal(snap)
+	glog.Infof("Deleting snapshot %s of %s volume %s in namespace %s", snapName, castype, volName, namespace)
+	// Add query params
+	q := req.URL.Query()
+	q.Add("volume", volName)
+	q.Add("namespace", namespace)
+	q.Add("casType", castype)
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(yamlValue))
-
-	req.Header.Add("Content-Type", "application/yaml")
+	// Add query params to req
+	req.URL.RawQuery = q.Encode()
 
 	c := &http.Client{
 		Timeout: timeout,
@@ -177,18 +230,5 @@ func (v CASVolume) RevertSnapshot(volName string, snapName string) (string, erro
 		glog.Errorf("Status error: %v\n", http.StatusText(code))
 		return "HTTP Status error from maya-apiserver", err
 	}
-
-	glog.Infof("Snapshot Successfully restore:\n%v\n", string(data))
-	return "Snapshot Successfully restore", nil
-
-}
-
-func (v CASVolume) SnapshotInfo(volName string, snapName string) (string, error) {
-
-	return "Not implemented", nil
-}
-
-func (v CASVolume) DeleteSnapshot(snapName string) (string, error) {
-
-	return "Not implemented", nil
+	return string(data), nil
 }
