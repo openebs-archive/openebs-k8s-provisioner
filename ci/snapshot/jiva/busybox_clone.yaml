@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: busybox-clone
+  name: busybox-clone-jiva
   namespace: default
 spec:
   containers:
@@ -18,4 +18,4 @@ spec:
   volumes:
   - name: demo-snap-vol
     persistentVolumeClaim:
-      claimName: demo-snap-vol-claim
+      claimName: demo-snap-vol-claim-jiva
