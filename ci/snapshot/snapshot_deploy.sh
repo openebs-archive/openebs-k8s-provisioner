@@ -84,6 +84,7 @@ dumpMayaAPIServerLogs 100
 
 echo "******************* Create Cstor and Jiva PersistentVolume *******************"
 kubectl create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/demo/pvc-single-replica-jiva.yaml
+kubectl create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/sample-pv-yamls/pvc-jiva-sc-beta-1r.yaml
 kubectl create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/sample-pv-yamls/pvc-sparse-claim-cstor.yaml
 
 dumpMayaAPIServerLogs 300

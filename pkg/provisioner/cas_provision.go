@@ -140,7 +140,7 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 
 	labels := make(map[string]string)
 	labels[string(v1alpha1.CASTypeKey)] = casVolume.Spec.CasType
-	labels[string(v1alpha1.StorageClassKey)] = *options.PVC.Spec.StorageClassName
+	labels[string(v1alpha1.StorageClassKey)] = *className
 
 	var volumeMode *v1.PersistentVolumeMode
 	volumeMode = options.PVC.Spec.VolumeMode
