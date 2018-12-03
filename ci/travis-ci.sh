@@ -14,11 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# global env vars to be used in test scripts
+export CI_BRANCH="master"
+export CI_TAG="ci"
+
 #$DST_REPO/external-storage/openebs/ci/helm_install_openebs.sh
 #rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 # Calling snapshot test
-$DST_REPO/external-storage/openebs/ci/snapshot/snapshot_deploy.sh
+$DST_REPO/external-storage/openebs/ci/build-images.sh
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-
+# download the test script from openebs/openebs and execute it.
+echo "**************Executing common test script from openebs/openebs**************"
+curl https://raw.githubusercontent.com/openebs/openebs/master/k8s/ci/test-script.sh > test-script.sh
+chmod +x test-script.sh && ./test-script.sh
