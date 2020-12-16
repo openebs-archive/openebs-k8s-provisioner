@@ -53,7 +53,7 @@ docker.buildx.provisioner:
 	fi
 	@docker buildx build --platform "${PLATFORMS}" \
 		-t "$(DOCKERX_IMAGE_PROVISIONER)" ${DBUILD_ARGS} \
-		-f $(PWD)/openebs/buildscripts/docker/provisioner.Dockerfile \
+		-f $(PWD)/buildscripts/docker/provisioner.Dockerfile \
 		. ${PUSH_ARG}
 	@echo "--> Build docker image: $(DOCKERX_IMAGE_PROVISIONER)"
 	@echo
