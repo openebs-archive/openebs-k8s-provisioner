@@ -105,6 +105,6 @@ after_success:
 
 branches:
   only:
-  - release
+  - develop
   - /^\d+\.\d+(\.\d+)?(-\S*)?$/
   - /^v\d+\.\d+(\.\S*)?$/
