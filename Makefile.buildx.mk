@@ -60,4 +60,4 @@ docker.buildx.provisioner:
 
 .PHONY: buildx.push.provisioner
 buildx.push.provisioner:
-	BUILDX=true DIMAGE=${IMAGE_ORG}/openebs-k8s-provisioner ./buildxpush
+	BUILDX=true DIMAGE=${IMAGE_ORG}/openebs-k8s-provisioner ./buildscripts/buildxpush
