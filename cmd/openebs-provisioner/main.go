@@ -24,9 +24,9 @@ import (
 	"syscall"
 
 	"github.com/golang/glog"
-	"github.com/kubernetes-incubator/external-storage/lib/controller"
-	"github.com/kubernetes-incubator/external-storage/openebs/pkg/provisioner"
-	mayav1 "github.com/kubernetes-incubator/external-storage/openebs/types/v1"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
+	"github.com/openebs/openebs-k8s-provisioner/pkg/provisioner"
+	mayav1 "github.com/openebs/openebs-k8s-provisioner/types/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

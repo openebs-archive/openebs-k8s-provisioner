@@ -24,10 +24,10 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/kubernetes-incubator/external-storage/lib/controller"
-	"github.com/kubernetes-incubator/external-storage/lib/util"
-	"github.com/kubernetes-incubator/external-storage/openebs/pkg/apis/openebs.io/v1alpha1"
-	mv1alpha1 "github.com/kubernetes-incubator/external-storage/openebs/pkg/volume/v1alpha1"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
+	//"github.com/kubernetes-incubator/external-storage/lib/util"
+	"github.com/openebs/openebs-k8s-provisioner/pkg/apis/openebs.io/v1alpha1"
+	mv1alpha1 "github.com/openebs/openebs-k8s-provisioner/pkg/volume/v1alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -71,7 +71,7 @@ var _ controller.Provisioner = &openEBSCASProvisioner{}
 var _ controller.BlockProvisioner = &openEBSCASProvisioner{}
 
 // Provision creates a storage asset and returns a PV object representing it.
-func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1.PersistentVolume, error) {
+func (p *openEBSCASProvisioner) Provision(options controller.ProvisionOptions) (*v1.PersistentVolume, error) {
 
 	//Issue a request to Maya API Server to create a volume
 	var openebsCASVol mv1alpha1.CASVolume
@@ -126,10 +126,16 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 		glog.V(2).Infof("VolumeInfo: created volume metadata : %#v", casVolume)
 	}
 
-	if !util.AccessModesContainedInAll(p.GetAccessModes(), options.PVC.Spec.AccessModes) {
-		glog.Errorf("Invalid Access Modes: %v, Supported Access Modes: %v", options.PVC.Spec.AccessModes, p.GetAccessModes())
-		return nil, fmt.Errorf("Invalid Access Modes: %v, Supported Access Modes: %v", options.PVC.Spec.AccessModes, p.GetAccessModes())
+	for _, accessMode := range options.PVC.Spec.AccessModes {
+		if accessMode != v1.ReadWriteOnce {
+			return nil, fmt.Errorf("Only support ReadWriteOnce access mode")
+		}
 	}
+
+	//if !util.AccessModesContainedInAll(p.GetAccessModes(), options.PVC.Spec.AccessModes) {
+	//	glog.Errorf("Invalid Access Modes: %v, Supported Access Modes: %v", options.PVC.Spec.AccessModes, p.GetAccessModes())
+	//	return nil, fmt.Errorf("Invalid Access Modes: %v, Supported Access Modes: %v", options.PVC.Spec.AccessModes, p.GetAccessModes())
+	//}
 
 	// Use annotations to specify the context using which the PV was created.
 	volAnnotations := make(map[string]string)
@@ -156,9 +162,9 @@ func (p *openEBSCASProvisioner) Provision(options controller.VolumeOptions) (*v1
 			Labels:      labels,
 		},
 		Spec: v1.PersistentVolumeSpec{
-			PersistentVolumeReclaimPolicy: options.PersistentVolumeReclaimPolicy,
+			PersistentVolumeReclaimPolicy: *options.StorageClass.ReclaimPolicy,
 			AccessModes:                   options.PVC.Spec.AccessModes,
-			MountOptions:                  options.MountOptions,
+			MountOptions:                  options.StorageClass.MountOptions,
 			Capacity: v1.ResourceList{
 				v1.ResourceName(v1.ResourceStorage): options.PVC.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)],
 			},

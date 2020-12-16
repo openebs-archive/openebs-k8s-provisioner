@@ -27,7 +27,7 @@ import (
 
 	"github.com/golang/glog"
 
-	v1alpha1 "github.com/kubernetes-incubator/external-storage/openebs/pkg/apis/openebs.io/v1alpha1"
+	v1alpha1 "github.com/openebs/openebs-k8s-provisioner/pkg/apis/openebs.io/v1alpha1"
 )
 
 // CreateSnapshot to create the Vsm through a API call to m-apiserver

@@ -1,7 +1,7 @@
 package provisioner
 
 import (
-	"github.com/kubernetes-incubator/external-storage/lib/controller"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
 )
 
 const (
@@ -11,7 +11,7 @@ const (
 )
 
 // GetPersistentVolumeClass returns StorageClassName.
-func GetStorageClassName(options controller.VolumeOptions) *string {
+func GetStorageClassName(options controller.ProvisionOptions) *string {
 	// Use beta annotation first
 	if class, found := options.PVC.Annotations[BetaStorageClassAnnotation]; found {
 		return &class
