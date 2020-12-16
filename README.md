@@ -7,7 +7,7 @@ _Note: We recommend OpenEBS users to shift towards cStor CSI based provisioner a
 
 ## Building OpenEBS provisioner from source
 
-Following command will generate `openebs-provisioner` binary in external-storage/openebs.
+Following command will generate `openebs-provisioner` binary. 
 
 ```
 $ make 

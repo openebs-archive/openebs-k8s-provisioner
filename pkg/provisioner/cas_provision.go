@@ -25,7 +25,6 @@ import (
 
 	"github.com/golang/glog"
 	"sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
-	//"github.com/kubernetes-incubator/external-storage/lib/util"
 	"github.com/openebs/openebs-k8s-provisioner/pkg/apis/openebs.io/v1alpha1"
 	mv1alpha1 "github.com/openebs/openebs-k8s-provisioner/pkg/volume/v1alpha1"
 	"k8s.io/api/core/v1"

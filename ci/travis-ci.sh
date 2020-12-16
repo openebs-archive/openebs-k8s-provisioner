@@ -15,10 +15,10 @@
 # limitations under the License.
 
 # global env vars to be used in test scripts
-export CI_BRANCH="master"
+export CI_BRANCH="develop"
 export CI_TAG="ci"
 
-#$DST_REPO/external-storage/openebs/ci/helm_install_openebs.sh
+#./ci/helm_install_openebs.sh
 #rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 # Calling snapshot test

@@ -29,17 +29,17 @@ ENV GO111MODULE=off \
   RELEASE_TAG=${RELEASE_TAG} \
   BRANCH=${BRANCH}
 
-WORKDIR /go/src/github.com/kubernetes-incubator/external-storage
+WORKDIR /go/src/github.com/openebs/openebs-k8s-provisioner
 
 COPY . .
 
-RUN make openebs
+RUN make build
 
 FROM ubuntu:16.04
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN apt-get update; exit 0
 
-COPY --from=build /go/src/github.com/kubernetes-incubator/external-storage/openebs/openebs-provisioner /
+COPY --from=build /go/src/github.com/openebs/openebs-k8s-provisioner/openebs-provisioner /
 
 ARG DBUILD_DATE
 ARG DBUILD_REPO_URL
