@@ -22,7 +22,7 @@ export CI_TAG="ci"
 #rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 # Calling snapshot test
-$DST_REPO/external-storage/openebs/ci/build-images.sh
+./ci/build-images.sh
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 # download the test script from openebs/openebs and execute it.
@@ -33,7 +33,7 @@ curl https://raw.githubusercontent.com/openebs/openebs/master/k8s/ci/test-script
 echo "Creating /var/openebs/sparse/udev_checks directory"
 sudo mkdir -p /var/openebs/sparse/udev_checks
 echo "Compiling and building the binary"
-sudo gcc $DST_REPO/external-storage/openebs/ci/udev_check.c -ludev -o /var/openebs/sparse/udev_checks/udev_check
+sudo gcc ./ci/udev_check.c -ludev -o /var/openebs/sparse/udev_checks/udev_check
 
 ## Executing the script
 chmod +x test-script.sh && ./test-script.sh
