@@ -29,7 +29,6 @@ import (
 	"k8s.io/client-go/rest"
 	kcache "k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	kcontroller "k8s.io/kubernetes/pkg/controller"
 
 	crdv1 "github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/apis/crd/v1"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/controller/cache"
@@ -168,7 +167,7 @@ func (c *snapshotController) Run(ctx <-chan struct{}) {
 
 	go c.snapshotController.Run(ctx)
 
-	if !kcontroller.WaitForCacheSync("snapshot-controller", ctx, c.snapshotController.HasSynced) {
+	if !kcache.WaitForNamedCacheSync("snapshot-controller", ctx, c.snapshotController.HasSynced) {
 		return
 	}
 

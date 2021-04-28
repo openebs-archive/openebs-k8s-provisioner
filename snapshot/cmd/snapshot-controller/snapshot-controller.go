@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"time"
@@ -30,15 +31,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/client"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider/providers/aws"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider/providers/gce"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider/providers/openstack"
+
 	snapshotcontroller "github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/controller/snapshot-controller"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/awsebs"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/cinder"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/gcepd"
+
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/gluster"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/hostpath"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/openebs"
@@ -51,7 +47,7 @@ const (
 
 var (
 	kubeconfig      = flag.String("kubeconfig", "", "Path to a kube config. Only required if out-of-cluster.")
-	cloudProvider   = flag.String("cloudprovider", "", "aws|gce|openstack")
+	cloudProvider   = flag.String("cloudprovider", "", "")
 	cloudConfigFile = flag.String("cloudconfig", "", "Path to a Cloud config. Only required if cloudprovider is set.")
 	volumePlugins   = make(map[string]volume.Plugin)
 )
@@ -79,6 +75,7 @@ func main() {
 
 	// make a new config for our extension's API group, using the first config as a baseline
 	snapshotClient, snapshotScheme, err := client.NewClient(config)
+	fmt.Println(snapshotScheme.AllKnownTypes())
 	if err != nil {
 		panic(err)
 	}
@@ -113,31 +110,6 @@ func buildConfig(kubeconfig string) (*rest.Config, error) {
 }
 
 func buildVolumePlugins() {
-	if len(*cloudProvider) != 0 {
-		cloud, err := cloudprovider.InitCloudProvider(*cloudProvider, *cloudConfigFile)
-		if err == nil && cloud != nil {
-			if *cloudProvider == aws.ProviderName {
-				awsPlugin := awsebs.RegisterPlugin()
-				awsPlugin.Init(cloud)
-				volumePlugins[awsebs.GetPluginName()] = awsPlugin
-				glog.Info("Register cloudprovider aws")
-			}
-			if *cloudProvider == gce.ProviderName {
-				gcePlugin := gcepd.RegisterPlugin()
-				gcePlugin.Init(cloud)
-				volumePlugins[gcepd.GetPluginName()] = gcePlugin
-				glog.Infof("Register cloudprovider %s", gcepd.GetPluginName())
-			}
-			if *cloudProvider == openstack.ProviderName {
-				cinderPlugin := cinder.RegisterPlugin()
-				cinderPlugin.Init(cloud)
-				volumePlugins[cinder.GetPluginName()] = cinderPlugin
-				glog.Infof("Register cloudprovider %s", cinder.GetPluginName())
-			}
-		} else {
-			glog.Warningf("failed to initialize cloudprovider: %v, supported cloudproviders are %#v", err, cloudprovider.CloudProviders())
-		}
-	}
 	volumePlugins[gluster.GetPluginName()] = gluster.RegisterPlugin()
 	volumePlugins[hostpath.GetPluginName()] = hostpath.RegisterPlugin()
 	volumePlugins[openebs.GetPluginName()] = openebs.RegisterPlugin()

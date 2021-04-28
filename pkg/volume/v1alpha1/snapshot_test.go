@@ -126,91 +126,12 @@ func TestCreateSnapshot(t *testing.T) {
 			defer os.Unsetenv(tt.addr)
 			defer server.Close()
 			var vol CASVolume
-			resp, err := vol.CreateSnapshot(tt.volumeName, tt.snapName, "default")
+			resp, err := vol.CreateSnapshot("cstor", tt.volumeName, tt.snapName, "default")
 			if !reflect.DeepEqual(err, tt.err) {
 				t.Fatalf("CreateSnapshot(%v, %v) => got %v, want %v ", tt.volumeName, tt.snapName, err, tt.err)
 			}
 			if !reflect.DeepEqual(resp, tt.expectResp) {
 				t.Fatalf("CreateSnapshot(%v, %v) => got %v, want %v ", tt.volumeName, tt.snapName, resp, tt.expectResp)
-			}
-		})
-	}
-}
-
-func TestRevertSnapshot(t *testing.T) {
-	tests := map[string]struct {
-		volumeName  string
-		snapName    string
-		fakeHandler utiltesting.FakeHandler
-		err         error
-		addr        string
-	}{
-		"StatusOK": {
-			volumeName: "testvol",
-			snapName:   "snap1",
-			fakeHandler: utiltesting.FakeHandler{
-				StatusCode:   200,
-				ResponseBody: string(snapshotResponse),
-				T:            t,
-			},
-			err:  nil,
-			addr: "MAPI_ADDR",
-		},
-		"BadRequest": {
-			volumeName: "testvol",
-			snapName:   "snap1",
-			fakeHandler: utiltesting.FakeHandler{
-				StatusCode:   400,
-				ResponseBody: "Server status error: Bad Request",
-				T:            t,
-			},
-			err:  fmt.Errorf("Server status error: %v", http.StatusText(400)),
-			addr: "MAPI_ADDR",
-		},
-		"MAPI_ADDRNotSet": {
-			volumeName: "testvol",
-			snapName:   "snap1",
-			fakeHandler: utiltesting.FakeHandler{
-				StatusCode:   200,
-				ResponseBody: string(snapshotResponse),
-			},
-			err:  MAPIADDRNotSet,
-			addr: "",
-		},
-		"VolumeNameMissing": {
-			volumeName: "",
-			snapName:   "snap1",
-			fakeHandler: utiltesting.FakeHandler{
-				StatusCode:   400,
-				ResponseBody: "Volume name is missing",
-				T:            t,
-			},
-			err:  volumeNameIsMissing,
-			addr: "MAPI_ADDR",
-		},
-		"VolumeNotFound": {
-			volumeName: "sbc12234",
-			snapName:   "snap_123143545",
-			fakeHandler: utiltesting.FakeHandler{
-				StatusCode:   400,
-				ResponseBody: "Volume not found",
-				T:            t,
-			},
-			err:  volNotFound,
-			addr: "MAPI_ADDR",
-		},
-	}
-
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			server := httptest.NewServer(&tt.fakeHandler)
-			os.Setenv(tt.addr, server.URL)
-			defer os.Unsetenv(tt.addr)
-			defer server.Close()
-			var vol CASVolume
-			_, err := vol.RevertSnapshot(tt.volumeName, tt.snapName)
-			if !reflect.DeepEqual(err, tt.err) {
-				t.Fatalf("RevertSnapshot(%v, %v) => got %v, want %v ", tt.volumeName, tt.snapName, err, tt.err)
 			}
 		})
 	}

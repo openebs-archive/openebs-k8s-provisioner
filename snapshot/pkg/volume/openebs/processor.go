@@ -17,6 +17,7 @@ limitations under the License.
 package openebs
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -310,7 +311,7 @@ func GetStorageClass(pvName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	volume, err := client.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
+	volume, err := client.CoreV1().PersistentVolumes().Get(context.TODO(), pvName, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}

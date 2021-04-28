@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -78,7 +79,7 @@ func (v CASVolume) GetMayaClusterIP(client kubernetes.Interface) (string, error)
 		mayaAPIServiceName = "maya-apiserver-service"
 	}
 
-	sc, err := client.CoreV1().Services(namespace).Get(mayaAPIServiceName, metav1.GetOptions{})
+	sc, err := client.CoreV1().Services(namespace).Get(context.TODO(), mayaAPIServiceName, metav1.GetOptions{})
 	if err != nil {
 		glog.Errorf("Error getting IP Address for service - %s : %v", mayaAPIServiceName, err)
 	}
