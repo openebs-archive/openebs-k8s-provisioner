@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 	"strings"
@@ -24,13 +25,12 @@ import (
 	"syscall"
 
 	"github.com/golang/glog"
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
 	"github.com/openebs/openebs-k8s-provisioner/pkg/provisioner"
 	mayav1 "github.com/openebs/openebs-k8s-provisioner/types/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v6/controller"
 )
 
 const (
@@ -90,7 +90,7 @@ func main() {
 		controller.LeaderElection(isLeaderElectionEnabled()),
 	)
 	// Run starts all of controller's control loops
-	pc.Run(wait.NeverStop)
+	pc.Run(context.Background())
 }
 
 // isLeaderElectionEnabled returns true/false based on the ENV

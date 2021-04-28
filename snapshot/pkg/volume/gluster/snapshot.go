@@ -25,7 +25,7 @@ import (
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume"
 	"github.com/pborman/uuid"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -195,7 +195,7 @@ func (h *glusterfsPlugin) SnapshotRestore(snapshotData *crdv1.VolumeSnapshotData
 	glog.V(1).Infof("snapshot restored successfully to PV: %v", newSnapPV)
 
 	pv := &v1.PersistentVolumeSource{
-		Glusterfs: &v1.GlusterfsVolumeSource{
+		Glusterfs: &v1.GlusterfsPersistentVolumeSource{
 			Path:          newSnapPV,
 			EndpointsName: glusterfsEp,
 		},

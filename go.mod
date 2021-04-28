@@ -57,30 +57,20 @@ replace k8s.io/cri-api => k8s.io/cri-api v0.20.3
 replace k8s.io/mount-utils => k8s.io/mount-utils v0.20.3
 
 require (
-	cloud.google.com/go v0.54.0
-	github.com/aws/aws-sdk-go v1.35.24
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/go-cmp v0.5.5 // indirect
-	github.com/gophercloud/gophercloud v0.17.0
-	github.com/kubernetes-incubator/external-storage v5.5.0+incompatible
 	github.com/miekg/dns v1.1.35 // indirect
-	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pborman/uuid v1.2.0
-	github.com/prometheus/client_golang v1.8.0
-	github.com/stretchr/testify v1.6.1
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	github.com/prometheus/client_golang v1.8.0 // indirect
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/sys v0.0.0-20210216224549-f992740a1bac // indirect
-	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	google.golang.org/api v0.20.0
-	gopkg.in/gcfg.v1 v1.2.3
+	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
+	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	k8s.io/api v0.20.3
 	k8s.io/apiextensions-apiserver v0.0.0
 	k8s.io/apimachinery v0.20.3
 	k8s.io/client-go v0.20.3
-	k8s.io/klog v1.0.0 // indirect
 	k8s.io/kubernetes v1.20.3
-	k8s.io/mount-utils v0.20.3 // indirect
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
-	sigs.k8s.io/sig-storage-lib-external-provisioner v4.1.0+incompatible
+	sigs.k8s.io/sig-storage-lib-external-provisioner/v6 v6.3.0
 )

@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -24,24 +25,16 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/openebs/openebs-k8s-provisioner/lib/controller"
 	crdv1 "github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/apis/crd/v1"
 	crdclient "github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/client"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider/providers/aws"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider/providers/gce"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/cloudprovider/providers/openstack"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/awsebs"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/cinder"
-	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/gcepd"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/gluster"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/hostpath"
 	"github.com/openebs/openebs-k8s-provisioner/snapshot/pkg/volume/openebs"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v6/controller"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
@@ -76,7 +69,7 @@ func newSnapshotProvisioner(client kubernetes.Interface, crdclient *rest.RESTCli
 
 var _ controller.Provisioner = &snapshotProvisioner{}
 
-func (p *snapshotProvisioner) snapshotRestore(snapshotName string, snapshotData crdv1.VolumeSnapshotData, options controller.VolumeOptions) (*v1.PersistentVolumeSource, map[string]string, error) {
+func (p *snapshotProvisioner) snapshotRestore(snapshotName string, snapshotData crdv1.VolumeSnapshotData, options controller.ProvisionOptions) (*v1.PersistentVolumeSource, map[string]string, error) {
 	// validate the PV supports snapshot and restore
 	spec := &snapshotData.Spec
 	volumeType := crdv1.GetSupportedVolumeFromSnapshotDataSpec(spec)
@@ -89,7 +82,7 @@ func (p *snapshotProvisioner) snapshotRestore(snapshotName string, snapshotData 
 	}
 
 	// restore snapshot
-	pvSrc, labels, err := plugin.SnapshotRestore(&snapshotData, options.PVC, options.PVName, options.Parameters)
+	pvSrc, labels, err := plugin.SnapshotRestore(&snapshotData, options.PVC, options.PVName, options.StorageClass.Parameters)
 	if err != nil {
 		glog.Warningf("failed to snapshot %#v, err: %v", spec, err)
 	} else {
@@ -100,13 +93,13 @@ func (p *snapshotProvisioner) snapshotRestore(snapshotName string, snapshotData 
 }
 
 // Provision creates a storage asset and returns a PV object representing it.
-func (p *snapshotProvisioner) Provision(options controller.VolumeOptions) (*v1.PersistentVolume, error) {
+func (p *snapshotProvisioner) Provision(ctx context.Context, options controller.ProvisionOptions) (*v1.PersistentVolume, controller.ProvisioningState, error) {
 	if options.PVC.Spec.Selector != nil {
-		return nil, fmt.Errorf("claim Selector is not supported")
+		return nil, controller.ProvisioningFinished, fmt.Errorf("claim Selector is not supported")
 	}
 	snapshotName, ok := options.PVC.Annotations[crdclient.SnapshotPVCAnnotation]
 	if !ok {
-		return nil, fmt.Errorf("snapshot annotation not found on PVC")
+		return nil, controller.ProvisioningFinished, fmt.Errorf("snapshot annotation not found on PVC")
 	}
 
 	var snapshot crdv1.VolumeSnapshot
@@ -114,29 +107,29 @@ func (p *snapshotProvisioner) Provision(options controller.VolumeOptions) (*v1.P
 		Resource(crdv1.VolumeSnapshotResourcePlural).
 		Namespace(options.PVC.Namespace).
 		Name(snapshotName).
-		Do().Into(&snapshot)
+		Do(context.TODO()).Into(&snapshot)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve VolumeSnapshot %s in namespace %s: %v", snapshotName, options.PVC.Namespace, err)
+		return nil, controller.ProvisioningInBackground, fmt.Errorf("failed to retrieve VolumeSnapshot %s in namespace %s: %v", snapshotName, options.PVC.Namespace, err)
 	}
 	// FIXME: should also check if any VolumeSnapshotData points to this VolumeSnapshot
 	if len(snapshot.Spec.SnapshotDataName) == 0 {
-		return nil, fmt.Errorf("VolumeSnapshot %s is not bound to any VolumeSnapshotData", snapshotName)
+		return nil, controller.ProvisioningNoChange, fmt.Errorf("VolumeSnapshot %s is not bound to any VolumeSnapshotData", snapshotName)
 	}
 	var snapshotData crdv1.VolumeSnapshotData
 	err = p.crdclient.Get().
 		Resource(crdv1.VolumeSnapshotDataResourcePlural).
 		Name(snapshot.Spec.SnapshotDataName).
-		Do().Into(&snapshotData)
+		Do(context.TODO()).Into(&snapshotData)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve VolumeSnapshotData %s: %v", snapshot.Spec.SnapshotDataName, err)
+		return nil, controller.ProvisioningInBackground, fmt.Errorf("failed to retrieve VolumeSnapshotData %s: %v", snapshot.Spec.SnapshotDataName, err)
 	}
 	glog.V(3).Infof("restore from VolumeSnapshotData %s", snapshot.Spec.SnapshotDataName)
 
 	pvSrc, labels, err := p.snapshotRestore(snapshot.Spec.SnapshotDataName, snapshotData, options)
 	if err != nil || pvSrc == nil {
-		return nil, fmt.Errorf("failed to create a PV from snapshot %s: %v", snapshotName, err)
+		return nil, controller.ProvisioningInBackground, fmt.Errorf("failed to create a PV from snapshot %s: %v", snapshotName, err)
 	}
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
@@ -146,7 +139,7 @@ func (p *snapshotProvisioner) Provision(options controller.VolumeOptions) (*v1.P
 			},
 		},
 		Spec: v1.PersistentVolumeSpec{
-			PersistentVolumeReclaimPolicy: options.PersistentVolumeReclaimPolicy,
+			PersistentVolumeReclaimPolicy: *options.StorageClass.DeepCopy().ReclaimPolicy,
 			AccessModes:                   options.PVC.Spec.AccessModes,
 			Capacity: v1.ResourceList{
 				v1.ResourceName(v1.ResourceStorage): options.PVC.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)],
@@ -166,12 +159,12 @@ func (p *snapshotProvisioner) Provision(options controller.VolumeOptions) (*v1.P
 
 	glog.Infof("successfully created Snapshot share %#v", pv)
 
-	return pv, nil
+	return pv, controller.ProvisioningFinished, nil
 }
 
 // Delete removes the storage asset that was created by Provision represented
 // by the given PV.
-func (p *snapshotProvisioner) Delete(volume *v1.PersistentVolume) error {
+func (p *snapshotProvisioner) Delete(ctx context.Context, volume *v1.PersistentVolume) error {
 	ann, ok := volume.Annotations[provisionerIDAnn]
 	if !ok {
 		return errors.New("identity annotation not found on PV")
@@ -197,7 +190,7 @@ var (
 	master          = flag.String("master", "", "Master URL")
 	kubeconfig      = flag.String("kubeconfig", "", "Absolute path to the kubeconfig")
 	id              = flag.String("id", "", "Unique provisioner identity")
-	cloudProvider   = flag.String("cloudprovider", "", "aws|gce|openstack")
+	cloudProvider   = flag.String("cloudprovider", "", "")
 	cloudConfigFile = flag.String("cloudconfig", "", "Path to a Cloud config. Only required if cloudprovider is set.")
 	volumePlugins   = make(map[string]volume.Plugin)
 )
@@ -255,34 +248,10 @@ func main() {
 		controller.LeaderElection(isLeaderElectionEnabled()),
 	)
 	glog.Infof("starting PV provisioner %s", provisionerName)
-	pc.Run(wait.NeverStop)
+	pc.Run(context.Background())
 }
 
 func buildVolumePlugins() {
-	if len(*cloudProvider) != 0 {
-		cloud, err := cloudprovider.InitCloudProvider(*cloudProvider, *cloudConfigFile)
-		if err == nil && cloud != nil {
-			if *cloudProvider == aws.ProviderName {
-				awsPlugin := awsebs.RegisterPlugin()
-				awsPlugin.Init(cloud)
-				volumePlugins[awsebs.GetPluginName()] = awsPlugin
-			}
-			if *cloudProvider == gce.ProviderName {
-				gcePlugin := gcepd.RegisterPlugin()
-				gcePlugin.Init(cloud)
-				volumePlugins[gcepd.GetPluginName()] = gcePlugin
-				glog.Infof("Register cloudprovider %s", gcepd.GetPluginName())
-			}
-			if *cloudProvider == openstack.ProviderName {
-				cinderPlugin := cinder.RegisterPlugin()
-				cinderPlugin.Init(cloud)
-				volumePlugins[cinder.GetPluginName()] = cinderPlugin
-				glog.Infof("Register cloudprovider %s", cinder.GetPluginName())
-			}
-		} else {
-			glog.Warningf("failed to initialize aws cloudprovider: %v, supported cloudproviders are %#v", err, cloudprovider.CloudProviders())
-		}
-	}
 	volumePlugins[gluster.GetPluginName()] = gluster.RegisterPlugin()
 	volumePlugins[hostpath.GetPluginName()] = hostpath.RegisterPlugin()
 	volumePlugins[openebs.GetPluginName()] = openebs.RegisterPlugin()

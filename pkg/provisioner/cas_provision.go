@@ -17,6 +17,7 @@ limitations under the License.
 package provisioner
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,12 +25,12 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/controller"
 	"github.com/openebs/openebs-k8s-provisioner/pkg/apis/openebs.io/v1alpha1"
 	mv1alpha1 "github.com/openebs/openebs-k8s-provisioner/pkg/volume/v1alpha1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v6/controller"
 )
 
 type openEBSCASProvisioner struct {
@@ -70,7 +71,7 @@ var _ controller.Provisioner = &openEBSCASProvisioner{}
 var _ controller.BlockProvisioner = &openEBSCASProvisioner{}
 
 // Provision creates a storage asset and returns a PV object representing it.
-func (p *openEBSCASProvisioner) Provision(options controller.ProvisionOptions) (*v1.PersistentVolume, error) {
+func (p *openEBSCASProvisioner) Provision(ctx context.Context, options controller.ProvisionOptions) (*v1.PersistentVolume, controller.ProvisioningState, error) {
 
 	//Issue a request to Maya API Server to create a volume
 	var openebsCASVol mv1alpha1.CASVolume
@@ -108,26 +109,26 @@ func (p *openEBSCASProvisioner) Provision(options controller.ProvisionOptions) (
 	} else if err.Error() != http.StatusText(404) {
 		// any error other than 404 is unexpected error
 		glog.Errorf("Unexpected error occurred while trying to read the volume: %s", err)
-		return nil, err
+		return nil, controller.ProvisioningNoChange, err
 	} else if err.Error() == http.StatusText(404) {
 		// Create the volume and read it
 		glog.V(2).Infof("Volume %q does not exist,attempting to create volume", options.PVName)
 		err = openebsCASVol.CreateVolume(casVolume)
 		if err != nil {
 			glog.Errorf("Failed to create volume:  %+v, error: %s", options, err.Error())
-			return nil, err
+			return nil, controller.ProvisioningInBackground, err
 		}
 		err = openebsCASVol.ReadVolume(options.PVName, options.PVC.Namespace, *className, &casVolume)
 		if err != nil {
 			glog.Errorf("Failed to read volume: %v", err)
-			return nil, err
+			return nil, controller.ProvisioningInBackground, err
 		}
 		glog.V(2).Infof("VolumeInfo: created volume metadata : %#v", casVolume)
 	}
 
 	for _, accessMode := range options.PVC.Spec.AccessModes {
 		if accessMode != v1.ReadWriteOnce {
-			return nil, fmt.Errorf("Only support ReadWriteOnce access mode")
+			return nil, controller.ProvisioningFinished, fmt.Errorf("Only support ReadWriteOnce access mode")
 		}
 	}
 
@@ -179,7 +180,7 @@ func (p *openEBSCASProvisioner) Provision(options controller.ProvisionOptions) (
 			},
 		},
 	}
-	return pv, nil
+	return pv, controller.ProvisioningFinished, nil
 }
 
 func (p *openEBSCASProvisioner) GetAccessModes() []v1.PersistentVolumeAccessMode {
@@ -188,13 +189,13 @@ func (p *openEBSCASProvisioner) GetAccessModes() []v1.PersistentVolumeAccessMode
 	}
 }
 
-func (p *openEBSCASProvisioner) SupportsBlock() bool {
+func (p *openEBSCASProvisioner) SupportsBlock(ctx context.Context) bool {
 	return true
 }
 
 // Delete removes the storage asset that was created by Provision represented
 // by the given PV.
-func (p *openEBSCASProvisioner) Delete(volume *v1.PersistentVolume) error {
+func (p *openEBSCASProvisioner) Delete(ctx context.Context, volume *v1.PersistentVolume) error {
 
 	var openebsCASVol mv1alpha1.CASVolume
 	_, ok := volume.Annotations["openEBSProvisionerIdentity"]
