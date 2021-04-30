@@ -80,20 +80,46 @@ build:
 	CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o openebs-provisioner ./cmd/openebs-provisioner/
 
 image: build
-	@cp openebs-provisioner buildscripts/docker/
-	@cd buildscripts/docker && sudo docker build -t ${DIMAGE}:ci ${DBUILD_ARGS} --build-arg BASE_IMAGE=${BASEIMAGE} .
+	@cp openebs-provisioner buildscripts/provisioner
+	@cd buildscripts/provisioner && sudo docker build -t ${DIMAGE}:ci ${DBUILD_ARGS} --build-arg BASE_IMAGE=${BASEIMAGE} .
 
-.PHONY: container
-container: image
 
 deploy:
-	@cp openebs-provisioner buildscripts/docker/
-	@cd buildscripts/docker && sudo docker build -t ${DIMAGE}:ci .
+	@cp openebs-provisioner buildscripts/provisioner/
+	@cd buildscripts/provisioner && sudo docker build -t ${DIMAGE}:ci .
 	@sh buildscripts/push
 
 clean:
 	rm -rf vendor
 	rm -f openebs-provisioner
 	rm -f buildscripts/docker/openebs-provisioner
+	rm -f buildscripts/snapshot-controller/snapshot-controller
+	rm -f buildscripts/snapshot-provisioner/snapshot-provisioner
+	rm -rf _output
+
+MUTABLE_IMAGE_CONTROLLER = $(REGISTRY)snapshot-controller:latest
+MUTABLE_IMAGE_PROVISIONER = $(REGISTRY)snapshot-provisioner:latest
+
+.PHONY: all controller provisioner clean container container-quick push test
+
+all: snapshot-controller snapshot-provisioner
+
+snapshot-controller:
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o _output/bin/snapshot-controller cmd/snapshot-controller/snapshot-controller.go
+
+snapshot-provisioner:
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o _output/bin/snapshot-provisioner cmd/snapshot-pv-provisioner/snapshot-pv-provisioner.go
+
+test:
+	go test `go list ./... | grep -v 'vendor'`
+
+.PHONY: container
+container: image snapshot-controller snapshot-provisioner container-quick
+
+container-quick:
+	cp _output/bin/snapshot-controller buildscripts/snapshot-controller
+	cp _output/bin/snapshot-provisioner buildscripts/snapshot-provisioner
+	docker build -t $(MUTABLE_IMAGE_CONTROLLER) ${DBUILD_ARGS} buildscripts/snapshot-controller
+	docker build -t $(MUTABLE_IMAGE_PROVISIONER) ${DBUILD_ARGS} buildscripts/snapshot-provisioner
 
 include Makefile.buildx.mk

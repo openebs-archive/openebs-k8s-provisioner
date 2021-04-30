@@ -53,7 +53,7 @@ docker.buildx.provisioner:
 	fi
 	@docker buildx build --platform "${PLATFORMS}" \
 		-t "$(DOCKERX_IMAGE_PROVISIONER)" ${DBUILD_ARGS} \
-		-f $(PWD)/buildscripts/docker/provisioner.Dockerfile \
+		-f $(PWD)/buildscripts/provisioner/provisioner.Dockerfile \
 		. ${PUSH_ARG}
 	@echo "--> Build docker image: $(DOCKERX_IMAGE_PROVISIONER)"
 	@echo
@@ -61,3 +61,41 @@ docker.buildx.provisioner:
 .PHONY: buildx.push.provisioner
 buildx.push.provisioner:
 	BUILDX=true DIMAGE=${IMAGE_ORG}/openebs-k8s-provisioner ./buildscripts/buildxpush
+
+# Name of the multiarch image for snapshot-provisioner and controller
+DOCKERX_IMAGE_SNAP_CONTROLLER:=${IMAGE_ORG}/snapshot-controller:${TAG}
+DOCKERX_IMAGE_SNAP_PROVISIONER:=${IMAGE_ORG}/snapshot-provisioner:${TAG}
+
+.PHONY: docker.buildx
+docker.buildx:
+	export DOCKER_CLI_EXPERIMENTAL=enabled
+	@if ! docker buildx ls | grep -q container-builder; then\
+		docker buildx create --platform ${PLATFORMS} --name container-builder --use;\
+	fi
+	@docker buildx build --platform "${PLATFORMS}" \
+		-t "$(DOCKERX_IMAGE_NAME)" ${BUILD_ARGS} \
+		-f $(PWD)/buildscripts/$(COMPONENT)/$(COMPONENT).Dockerfile \
+		. ${PUSH_ARG}
+	@echo "--> Build docker image: $(DOCKERX_IMAGE_NAME)"
+	@echo
+
+.PHONY: docker.buildx.snapshot-controller
+docker.buildx.snapshot-controller: DOCKERX_IMAGE_NAME=$(DOCKERX_IMAGE_SNAP_CONTROLLER)
+docker.buildx.snapshot-controller: COMPONENT=snapshot-controller
+docker.buildx.snapshot-controller: BUILD_ARGS=$(DBUILD_ARGS)
+docker.buildx.snapshot-controller: docker.buildx
+
+.PHONY: docker.buildx.snapshot-provisioner
+docker.buildx.snapshot-provisioner: DOCKERX_IMAGE_NAME=$(DOCKERX_IMAGE_SNAP_PROVISIONER)
+docker.buildx.snapshot-provisioner: COMPONENT=snapshot-provisioner
+docker.buildx.snapshot-provisioner: BUILD_ARGS=$(DBUILD_ARGS)
+docker.buildx.snapshot-provisioner: docker.buildx
+
+
+.PHONY: buildx.push.snapshot-controller
+buildx.push.snapshot-controller:
+	BUILDX=true DIMAGE=${IMAGE_ORG}/snapshot-controller ./buildxpush
+
+.PHONY: buildx.push.snapshot-provisioner
+buildx.push.snapshot-provisioner:
+	BUILDX=true DIMAGE=${IMAGE_ORG}/snapshot-provisioner ./buildxpush
