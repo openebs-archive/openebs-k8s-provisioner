@@ -99,9 +99,9 @@ script:
       ./buildscripts/git-release "$REPO_ORG/maya" "$TRAVIS_TAG" "$REL_BRANCH" || travis_terminate 1;
     fi
 
-after_success:
-  - git describe --tags --always
-  - ./openebs-deploy.sh
+# after_success:
+#   - git describe --tags --always
+#   - ./openebs-deploy.sh
 
 branches:
   only:
