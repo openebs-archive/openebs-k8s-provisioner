@@ -95,6 +95,10 @@ clean:
 	rm -f buildscripts/docker/openebs-provisioner
 	rm -f buildscripts/snapshot-controller/snapshot-controller
 	rm -f buildscripts/snapshot-provisioner/snapshot-provisioner
+	rm -rf buildscripts/snapshot-controller/etc
+	rm -rf buildscripts/snapshot-controller/usr
+	rm -rf buildscripts/snapshot-provisioner/etc
+	rm -rf buildscripts/snapshot-provisioner/usr
 	rm -rf _output
 
 MUTABLE_IMAGE_CONTROLLER = $(REGISTRY)snapshot-controller:latest
@@ -119,6 +123,9 @@ container: image snapshot-controller snapshot-provisioner container-quick
 container-quick:
 	cp _output/bin/snapshot-controller buildscripts/snapshot-controller
 	cp _output/bin/snapshot-provisioner buildscripts/snapshot-provisioner
+	# Copy the root CA certificates -- cloudproviders need them
+	cp -Rf buildscripts/ca-certificates/* buildscripts/snapshot-controller/.
+	cp -Rf buildscripts/ca-certificates/* buildscripts/snapshot-provisioner/.
 	docker build -t $(MUTABLE_IMAGE_CONTROLLER) ${DBUILD_ARGS} buildscripts/snapshot-controller
 	docker build -t $(MUTABLE_IMAGE_PROVISIONER) ${DBUILD_ARGS} buildscripts/snapshot-provisioner
 

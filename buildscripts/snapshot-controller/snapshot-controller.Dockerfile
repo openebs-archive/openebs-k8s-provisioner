@@ -19,7 +19,7 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT=""
 
-ENV GO111MODULE=off \
+ENV GO111MODULE=on \
   GOOS=${TARGETOS} \
   GOARCH=${TARGETARCH} \
   GOARM=${TARGETVARIANT} \
@@ -27,13 +27,13 @@ ENV GO111MODULE=off \
   PATH="/root/go/bin:${PATH}" \
   RELEASE_TAG=${RELEASE_TAG}
 
-WORKDIR /go/src/github.com/kubernetes-incubator/external-storage
+WORKDIR /go/src/github.com/openebs/openebs-k8s-provisioner
 
 RUN apt-get update && apt-get install -y make git
 
 COPY . .
 
-RUN cd snapshot && make controller
+RUN make snapshot-controller
 
 FROM alpine:3.11.5
 
@@ -58,8 +58,8 @@ LABEL org.label-schema.vcs-url=$DBUILD_REPO_URL
 LABEL org.label-schema.url=$DBUILD_SITE_URL
 
 # copy the latest binary
-COPY --from=build /go/src/github.com/kubernetes-incubator/external-storage/snapshot/_output/bin/snapshot-controller /
-COPY --from=build /go/src/github.com/kubernetes-incubator/external-storage/snapshot/deploy/ca-certificates/etc /etc
-COPY --from=build /go/src/github.com/kubernetes-incubator/external-storage/snapshot/deploy/ca-certificates/usr /etc
+COPY --from=build /go/src/github.com/openebs/openebs-k8s-provisioner/_output/bin/snapshot-controller /
+COPY --from=build /go/src/github.com/openebs/openebs-k8s-provisioner/buildscripts/ca-certificates/etc /etc
+COPY --from=build /go/src/github.com/openebs/openebs-k8s-provisioner/buildscripts/ca-certificates/usr /etc
 
 ENTRYPOINT ["/snapshot-controller"]
