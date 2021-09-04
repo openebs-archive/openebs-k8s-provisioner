@@ -31,7 +31,7 @@ import (
 	"github.com/openebs/openebs-k8s-provisioner/pkg/volume/gluster"
 	"github.com/openebs/openebs-k8s-provisioner/pkg/volume/hostpath"
 	"github.com/openebs/openebs-k8s-provisioner/pkg/volume/openebs"
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/v6/controller"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -218,13 +218,6 @@ func main() {
 		glog.Fatalf("Failed to create client: %v", err)
 	}
 
-	// The controller needs to know what the server version is because out-of-tree
-	// provisioners aren't officially supported until 1.5
-	serverVersion, err := clientset.Discovery().ServerVersion()
-	if err != nil {
-		glog.Fatalf("Error getting server version: %v", err)
-	}
-
 	// build volume plugins map
 	buildVolumePlugins()
 
@@ -244,7 +237,6 @@ func main() {
 		clientset,
 		provisionerName,
 		snapshotProvisioner,
-		serverVersion.GitVersion,
 		controller.LeaderElection(isLeaderElectionEnabled()),
 	)
 	glog.Infof("starting PV provisioner %s", provisionerName)
