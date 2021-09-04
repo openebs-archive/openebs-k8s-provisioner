@@ -1,4 +1,5 @@
 /bin/
+_output
 nohup.out
 coverage.txt
 profile.out

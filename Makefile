@@ -106,7 +106,7 @@ MUTABLE_IMAGE_PROVISIONER = $(REGISTRY)snapshot-provisioner:latest
 
 .PHONY: all controller provisioner clean container container-quick push test
 
-all: snapshot-controller snapshot-provisioner
+all: build snapshot-controller snapshot-provisioner
 
 snapshot-controller:
 	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o _output/bin/snapshot-controller cmd/snapshot-controller/snapshot-controller.go
