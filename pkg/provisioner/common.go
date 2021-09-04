@@ -1,7 +1,7 @@
 package provisioner
 
 import (
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/v6/controller"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v7/controller"
 )
 
 const (
