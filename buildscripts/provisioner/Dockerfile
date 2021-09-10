@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG BASE_IMAGE=ubuntu:16.04
-FROM $BASE_IMAGE
+FROM openebs/linux-utils:2.12.x-ci
 COPY openebs-provisioner /
 
 ARG ARCH

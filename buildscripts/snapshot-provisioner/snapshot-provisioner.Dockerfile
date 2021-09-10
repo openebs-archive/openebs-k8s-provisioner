@@ -35,7 +35,7 @@ COPY . .
 
 RUN make snapshot-provisioner
 
-FROM alpine:3.11.5
+FROM openebs/linux-utils:2.12.x-ci
 
 RUN apk add --no-cache \
     bash \

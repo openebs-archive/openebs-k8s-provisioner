@@ -29,19 +29,6 @@ export XC_ARCH
 ARCH:=${XC_OS}_${XC_ARCH}
 export ARCH
 
-ifeq (${BASE_DOCKER_IMAGEARM64}, )
-  BASE_DOCKER_IMAGEARM64 = "arm64v8/ubuntu:18.04"
-  export BASE_DOCKER_IMAGEARM64
-endif
-
-ifeq (${ARCH},linux_arm64)
-  BASEIMAGE:=${BASE_DOCKER_IMAGEARM64}
-else
-  # The ubuntu:16.04 image is being used as base image.
-  BASEIMAGE:=ubuntu:16.04
-endif
-export BASEIMAGE
-
 ifeq (${IMAGE_ORG}, )
   IMAGE_ORG=openebs
   export IMAGE_ORG
@@ -81,7 +68,7 @@ build:
 
 image: build
 	@cp openebs-provisioner buildscripts/provisioner
-	@cd buildscripts/provisioner && sudo docker build -t ${DIMAGE}:ci ${DBUILD_ARGS} --build-arg BASE_IMAGE=${BASEIMAGE} .
+	@cd buildscripts/provisioner && sudo docker build -t ${DIMAGE}:ci ${DBUILD_ARGS} .
 
 
 deploy:
@@ -90,7 +77,6 @@ deploy:
 	@sh buildscripts/push
 
 clean:
-	rm -rf vendor
 	rm -f openebs-provisioner
 	rm -f buildscripts/docker/openebs-provisioner
 	rm -f buildscripts/snapshot-controller/snapshot-controller
