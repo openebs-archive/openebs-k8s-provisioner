@@ -76,6 +76,7 @@ jobs:
           images: |
             ${{ env.IMAGE_ORG }}/openebs-k8s-provisioner
             quay.io/${{ env.IMAGE_ORG }}/openebs-k8s-provisioner
+            ghcr.io/${{ env.IMAGE_ORG }}/openebs-k8s-provisioner
           tag-latest: false
           tag-custom-only: true
           tag-custom: |
@@ -110,6 +111,13 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Push Image
         uses: docker/build-push-action@v2
@@ -163,6 +171,7 @@ jobs:
           images: |
             ${{ env.IMAGE_ORG }}/snapshot-provisioner
             quay.io/${{ env.IMAGE_ORG }}/snapshot-provisioner
+            ghcr.io/${{ env.IMAGE_ORG }}/snapshot-provisioner
           tag-latest: false
           tag-custom-only: true
           tag-custom: |
@@ -197,6 +206,13 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Push Image
         uses: docker/build-push-action@v2
@@ -250,6 +266,7 @@ jobs:
           images: |
             ${{ env.IMAGE_ORG }}/snapshot-controller
             quay.io/${{ env.IMAGE_ORG }}/snapshot-controller
+            ghcr.io/${{ env.IMAGE_ORG }}/snapshot-controller
           tag-latest: false
           tag-custom-only: true
           tag-custom: |
@@ -284,6 +301,13 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & Push Image
         uses: docker/build-push-action@v2

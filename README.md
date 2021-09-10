@@ -8,7 +8,7 @@ _Note: We recommend OpenEBS users to shift towards CSI based provisioner availab
 
 This provisioner is based on the Kubenretes external storage provisioner. This code has been migrated from https://github.com/openebs/external-storage/tree/release/openebs, as Kubernetes community deprecated the external-storage repository.  
 
-This repository mainly contains code required for running the legacy cStor and Jiva pools and volumes like: 
+This repository contains code for building legacy cStor and Jiva provisioners like: 
 - `openebs-k8s-provisioner` - used for provisoining the legacy cStor and Jiva pools and volumes.
 - `snapshot-controller` and `snapshot-operator` - for helping with snapshot and clone on legacy cStor volumes.
 
@@ -16,17 +16,21 @@ This repository mainly contains code required for running the legacy cStor and J
 
 Please refer to our documentation at [OpenEBS Documentation](http://openebs.io/).
 
+## Building from source
+
+```
+$ make all 
+```
+
+## Create a docker image 
+
+```
+$ make container
+```
+
 ## Release
 
-Prior to creating a release tag on this repository on `v2.12.x` branch with the required fixes, ensure that the dependent data engine repositories and provisioner are tagged. Once the code is merged, use the following sequence to release a new version for the legacy components:
-- (Optional) New release tag on v2.12.x branch of [openebs/linux-utils](https://github.com/openebs/linux-utils)
-- (Optional) New release tag on v0.6.x branch of [openebs/ndm](https://github.com/openebs/node-disk-manager)
-- New release tag on v2.12.x branch of [openebs/cstor](https://github.com/openebs/cstor) and [openebs/libcstor](https://github.com/openebs/libcstor)
-- New release tag on v2.12.x branch of [openebs/jiva](https://github.com/openebs/jiva) 
-- New release tag on v2.12.x branch of [openebs/openebs-k8s-provisioner](https://github.com/openebs/openebs-k8s-provisioner)
-- New release tag on v2.12.x branch of [openebs/m-exporter](https://github.com/openebs/m-exporter)
-- New release tag on v2.12.x branch of [openebs/maya](https://github.com/openebs/maya)
-- New release tag on v2.12.x branch of [openebs/velero-plugin](https://github.com/openebs/velero-plugin)
+The containers from this repo have to built along with other control plane components. The detailed steps for making a new release are at: https://github.com/openebs/maya/blob/HEAD/README.md#release
 
 ## Contributing
 
@@ -44,18 +48,6 @@ OpenEBS welcomes your feedback and contributions in any form possible.
     -  [#openebs-dev](https://kubernetes.slack.com/messages/openebs-dev/)
 
 
-
-## Building OpenEBS provisioners from source
-
-```
-$ make all 
-```
-
-## Create a docker image 
-
-```
-$ make container
-```
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopenebs%2Fopenebs-k8s-provisioner.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopenebs%2Fopenebs-k8s-provisioner?ref=badge_large)

@@ -35,9 +35,7 @@ COPY . .
 
 RUN make build
 
-FROM ubuntu:16.04
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN apt-get update; exit 0
+FROM openebs/linux-utils:2.12.x-ci
 
 COPY --from=build /go/src/github.com/openebs/openebs-k8s-provisioner/openebs-provisioner /
 
